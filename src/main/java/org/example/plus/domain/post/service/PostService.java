@@ -25,6 +25,7 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final PostCacheService postCacheService;
 
     @Transactional
     public PostDto creatPost(String username, String content) {
@@ -39,36 +40,7 @@ public class PostService {
 
     }
 
-
-    // 지연 로딩이구나
-    // 실질적으로 사용할 때 불러오는 것이구나!
-
-    // 즉시 로딩으로 한번 테스트를 진행해보겠습니다!
-    // 유저를 조회 하자 마자 조회를 할때 연관된 모든 것들을 싸그리 싹싹 긁거서 가져올 것이다.
-
-    public List<PostDto> getPostListByUsername(String username) {
-
- /*       User user = userRepository.findUserByUsername(username).orElseThrow(
-            () -> new IllegalArgumentException("등록된 사용자가 없습니다.")
-        );
-
-        List<Post> postList = user.getPosts();
-
-
-        // post List 를 postDto list로 변환 한것이다.
-        return postList.stream()
-            .map(PostDto::from)
-            .collect(Collectors.toList());*/
-        return null;
-    }
-
-    @Transactional
-    public List<PostSummaryDto> getPostSummaryListByUsername(String username) {
-
-        List<PostSummaryDto> result = postRepository.findPostSummary(username);
-        return result;
-    }
-
+    /*
     // @Cacheable이 하는 역할
     // 1단계: postId 기준으로 캐시에 값이 있는지 없는지 확인
     // 2단계: 값이 있으면 바로 리턴
@@ -102,6 +74,46 @@ public class PostService {
     @Transactional
     public void deletePostById(long postId) {
         postRepository.deleteById(postId);
+    }
+
+     */
+
+    @Transactional
+    public PostDto getPostById(long postId) {
+        // 1단계: postId 기준으로 캐시에 값이 있는지 없는지 조회
+        PostDto cached = postCacheService.getPostCache(postId);
+
+        // 2단계: 값이 있으면 바로 리턴
+        if (cached != null) {
+            log.info("Redis Data Cache Hit");
+            return cached;
+        }
+
+        // 3단계: 값이 없으면 직접 DB 조회
+        log.info("Redis Data Cache Miss {}", postId);
+        Post post = postRepository.findById(postId).orElseThrow(
+                () -> new IllegalArgumentException("등록된 포스트가 없습니다")
+        );
+
+        // 4단계: DB에서 가져온 값을 캐시에 저장 -> 다음에 캐시에서 바로 가져올 수 있도록
+        PostDto postDto = PostDto.from(post);
+        postCacheService.savePostCache(postId, postDto);
+
+        return postDto;
+    }
+
+    @Transactional
+    public PostDto updatePostById(long postId, UpdatePostRequest request) {
+        Post post = postRepository.findById(postId).orElseThrow(
+                () -> new IllegalArgumentException("등록된 포스트가 없습니다")
+        );
+        post.update(request);
+        postRepository.save(post);
+
+        // 캐시 삭제(무효화)
+        postCacheService.deletePostCache(postId);
+
+        return PostDto.from(post);
     }
 }
 

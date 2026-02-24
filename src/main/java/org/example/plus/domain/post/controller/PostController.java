@@ -24,22 +24,11 @@ public class PostController {
         return ResponseEntity.ok(postService.creatPost(user.getUsername(), request.getContent()));
     }
 
-    @GetMapping("/user/{username}")
-    public ResponseEntity<List<PostDto>> getPostListByUsername(@PathVariable String username) {
-        return ResponseEntity.ok(postService.getPostListByUsername(username));
-    }
-
-
-    //특정 사용자가 작성한 게시글에 달린 댓글의 갯수를 구하는 기능을 만들어주세요.
-    @GetMapping("/user/{username}/detail")
-    public ResponseEntity<List<PostSummaryDto>> getPostListDetailByUsername(@PathVariable String username) {
-        return ResponseEntity.ok(postService.getPostSummaryListByUsername(username));
-    }
-
     // 1 post Id 기준으로 post를 조회하는 API를 생성할 것이다.
     // postId 기반으로 검색했을 때 캐시에 값이 있으면 바로 리턴
     // 캐시에 값이 없으면 DB 조회 후 캐시에 저장
 
+    /*
     @GetMapping("/{postId}")
     public ResponseEntity<PostDto> getPostById(@PathVariable long postId){
         return ResponseEntity.ok(postService.getPostById(postId));
@@ -54,6 +43,19 @@ public class PostController {
     public ResponseEntity<Void> deletePostById(@PathVariable long postId){
         postService.deletePostById(postId);
         return ResponseEntity.ok().build();
+    }
+    */
+
+    // Redis 실습: 게시글 조회 ID 기반으로 캐시가 있으면 캐시 그대로 사용. 없으면 DB 조회 후 캐시에 데이터 생성
+    @GetMapping("/{postId}")
+    public ResponseEntity<PostDto> getPostById(@PathVariable long postId){
+        return ResponseEntity.ok(postService.getPostById(postId));
+    }
+
+    // Redis 실습: 게시글 수정시 캐시도 삭제
+    @PutMapping("/{postId}")
+    public ResponseEntity<PostDto> updatePostById(@PathVariable long postId, @RequestBody UpdatePostRequest request){
+        return ResponseEntity.ok(postService.updatePostById(postId, request));
     }
 
 }
