@@ -1,5 +1,7 @@
 package org.example.plus.domain.post.service;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -86,6 +88,10 @@ public class PostService {
         // 2단계: 값이 있으면 바로 리턴
         if (cached != null) {
             log.info("Redis Data Cache Hit");
+
+            // 조회수 1 증가
+            postCacheService.increasePostViewCount(postId);
+
             return cached;
         }
 
@@ -94,6 +100,9 @@ public class PostService {
         Post post = postRepository.findById(postId).orElseThrow(
                 () -> new IllegalArgumentException("등록된 포스트가 없습니다")
         );
+
+        // 조회수 1 증가
+        postCacheService.increasePostViewCount(postId);
 
         // 4단계: DB에서 가져온 값을 캐시에 저장 -> 다음에 캐시에서 바로 가져올 수 있도록
         PostDto postDto = PostDto.from(post);
@@ -114,6 +123,33 @@ public class PostService {
         postCacheService.deletePostCache(postId);
 
         return PostDto.from(post);
+    }
+
+    @Transactional
+    public List<PostDto> getTopViewPostList(int limit) {
+        List<Long> topPostIdList = postCacheService.getTopViewPostList(limit);
+        List<PostDto> result = new ArrayList<>();
+
+        // NPE 방어 코드
+        if (topPostIdList == null || topPostIdList.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        for (Long postId : topPostIdList) {
+            log.info("topPostId: {}", postId);
+            // DB 직접 조회 전에 캐시에 해당 Post가 들어있는지 먼저 확인
+            PostDto postDto = postCacheService.getPostCache(postId);
+
+            // 캐시에 값이 없어서 NULL일 경우 실제 DB에서 값을 조회
+            if (postDto != null) {
+                postDto =  PostDto.from(postRepository.findById(postId).orElseThrow(
+                        () -> new IllegalArgumentException("등록된 포스트가 없습니다")
+                ));
+            }
+
+            result.add(postDto);
+        }
+        return result;
     }
 }
 

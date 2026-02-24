@@ -58,4 +58,10 @@ public class PostController {
         return ResponseEntity.ok(postService.updatePostById(postId, request));
     }
 
+    // Redis 실습: 인기 게시글 조회
+    @GetMapping("/popular")
+    public ResponseEntity<List<PostDto>> getPopularPostList(@RequestParam(defaultValue = "10") int limit){
+        return ResponseEntity.ok(postService.getTopViewPostList(limit));
+    }
+
 }
