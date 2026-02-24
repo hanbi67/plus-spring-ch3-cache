@@ -14,6 +14,7 @@ import java.util.List;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.example.plus.domain.post.model.request.UpdatePostRequest;
 
 @Entity
 @Getter
@@ -34,5 +35,8 @@ public class Post {
         this.userId = userId;
     }
 
+    public void update(UpdatePostRequest request) {
+        this.content = request.getContent();
+    }
 
 }
