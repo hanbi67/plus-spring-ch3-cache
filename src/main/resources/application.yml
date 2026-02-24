@@ -5,6 +5,10 @@ spring:
   # 최대 100개 캐시 유지, 10초 후 만료
   # 이것 이외에도 정말 다양한 TTL & Eviction Policy 있으니 다양한 옵션을 알고 싶으면
   # 공식 문서를 참고할 것
+  data:
+    redis:
+      host: localhost
+      port: 6379
   datasource:
     url: jdbc:mysql://localhost:3307/nbcam
     username: root
