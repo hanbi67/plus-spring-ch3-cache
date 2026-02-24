@@ -46,8 +46,8 @@ dependencies {
     // 캐시는 로컬 캐시 : caffeine을 사용할 것임
     implementation 'com.github.ben-manes.caffeine:caffeine'
 
-    // Redis 추가
-    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis' // Redis 추가
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310' // 파싱 도구 추가
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
