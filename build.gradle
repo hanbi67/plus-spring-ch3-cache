@@ -40,6 +40,12 @@ dependencies {
     annotationProcessor "jakarta.annotation:jakarta.annotation-api"
     annotationProcessor "jakarta.persistence:jakarta.persistence-api"
 
+    // 스프링에서 캐시 사용할 것임
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
+
+    // 캐시는 로컬 캐시 : caffeine을 사용할 것임
+    implementation 'com.github.ben-manes.caffeine:caffeine'
+
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
